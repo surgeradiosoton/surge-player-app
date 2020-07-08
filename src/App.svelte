@@ -115,16 +115,6 @@
 		margin-top: 0;
 	}
 
-	.hidden {
-		display:none;
-	}
-
-	#fixWithTime {
-		font-family: "Source Code Pro",Monaco,Courier,monospace;
-		text-align: center;
-		font-weight: 100;
-	}
-
 	main {
 		text-align: center;
 		padding: 1em;

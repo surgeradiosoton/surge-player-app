@@ -16,14 +16,69 @@
 		ctime = new Date();
 	}, 1000);
 
-	import generate_audio_stuff from './og_viz.js'
+	// // the original visualiser method
+	// import generate_audio_stuff from './og_viz.js'
+	// onMount(async() => {
+	// 	generate_audio_stuff(stream_url);
+	// })
+
+	// the new viz
+
+	let canvas;
+
 	onMount(async() => {
-		generate_audio_stuff(stream_url);
-	})
+		// create audio stream
+		let context = new AudioContext(), audio = new Audio(),
+		src, analyser;
+		audio.crossOrigin = "anonymous";
+		audio.src = stream_url;
+		audio.load();
+
+		// canvas stuff
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		let ctx = canvas.getContext("2d");
+
+		// create audio analysis stuff
+		src = context.createMediaElementSource(audio);
+		analyser = context.createAnalyser();
+		src.connect(analyser);
+		analyser.connect(context.destination);
+		analyser.fftSize = 256;
+		var buffer_len = analyser.frequencyBinCount;
+		var buffer_contents = new Uint8Array(buffer_len);
+
+		// render sub function
+		let render = () => {
+			let bar_width = 16,
+				bar_height = 500, 
+				x = 0;
+			requestAnimationFrame(render);
+			analyser.getByteFrequencyData(buffer_contents);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (var i = 0; i < buffer_len; i++) {
+				bar_height = buffer_contents[i]*2.6;
+				var h = 216;
+				var s = (bar_height*0.7) + (25 * (i/buffer_len));
+				var l = 50+(25 * (i/buffer_len));
+				ctx.fillStyle = "hsl(" + h + "," + s + "%," + l + "%)";
+				ctx.fillRect(x, canvas.height - bar_height, bar_width, bar_height);
+				x += bar_width + 1;
+			}
+		}
+		audio.play();
+		render();
+		window.onclose = function() {
+			audio.close();
+		}
+		window.onreload = function() {
+			audio.close();
+		}
+	});
 
 </script>
 
-<canvas id="canvas"></canvas>
+<canvas id="canvas" bind:this={canvas}></canvas>
 <main in:fade>
 	<div class="container" id="container">
 		<div>

@@ -113,8 +113,6 @@ let generate_audio_stuff = (stream_url) => {
 	// audio.volume = document.getElementById("vol-slider-control").value/10;
 	audio.play();
 	renderMethods.bars();
-	if (iOS==true){ document.getElementById("apple_are_bellends").classList.add("hidden");
-	document.getElementById("pp").classList.remove("hidden");}
 
 	window.onclose = function() {
 	audio.close();

@@ -1,5 +1,4 @@
 <script>
-	export let name;
 
 	import {fade,blur} from "svelte/transition"
 	import {onMount, afterUpdate} from "svelte"
@@ -22,9 +21,7 @@
 	// 	generate_audio_stuff(stream_url);
 	// })
 
-	// the new viz
-
-	let canvas;
+	let canvas, audio;
 
 	onMount(async() => {
 		// create audio stream
@@ -57,7 +54,7 @@
 			analyser.getByteFrequencyData(buffer_contents);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			for (var i = 0; i < buffer_len; i++) {
-				bar_height = buffer_contents[i]*2.6;
+				bar_height = buffer_contents[i]*2;
 				var h = 216;
 				var s = (bar_height*0.7) + (25 * (i/buffer_len));
 				var l = 50+(25 * (i/buffer_len));
@@ -76,15 +73,28 @@
 		}
 	});
 
+	let slogans = [
+		'Your student soundtrack.',
+		'The sounds of Southampton.'
+	]
+	let current_slogan = 0;
+
+	setInterval(() => {	
+		current_slogan = Math.floor(Math.random()*slogans.length)
+	}, 7000);
+
+	$: visible_slogan = slogans[current_slogan]
+
 </script>
 
 <canvas id="canvas" bind:this={canvas}></canvas>
+<audio bind:this={audio}></audio>
 <main in:fade>
 	<div class="container" id="container">
 		<div>
 			<h1>{current_time}</h1>
 			<h2>SURGE RADIO</h2>
-			<h4>Your student soundtrack.</h4>
+			<h3 transition:fade>{visible_slogan}</h3>
 		</div>
 		
 	</div>
@@ -98,6 +108,11 @@
 		height: 100%;
 
 		color: white;
+	}
+	
+	h2 {
+		font-size:34pt;
+		margin-top: 0;
 	}
 
 	.hidden {
@@ -118,12 +133,13 @@
 	}
 
 	h1 {
-		color: #ff3e00;
+		color: #003edd;
 		text-transform: uppercase;
 		font-size: 4em;
 		font-family: "Source Code Pro",Monaco,Courier,monospace;
 		text-align: center;
 		font-weight: 100;
+		margin-bottom: 0;
 	}
 
 	@media (min-width: 640px) {

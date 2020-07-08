@@ -138,7 +138,7 @@
 		font-size: 4em;
 		font-family: "Source Code Pro",Monaco,Courier,monospace;
 		text-align: center;
-		font-weight: 100;
+		font-weight: 200;
 		margin-bottom: 0;
 	}
 

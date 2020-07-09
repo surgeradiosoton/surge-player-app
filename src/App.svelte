@@ -3,28 +3,33 @@
 	import {fade,blur} from "svelte/transition"
 	import {onMount, afterUpdate} from "svelte"
 
-	let canvas, audio;
+	import TiMediaPlay from 'svelte-icons/ti/TiMediaPlay.svelte'
+	import TiMediaPause from 'svelte-icons/ti/TiMediaPause.svelte'
+	import TiVolume from 'svelte-icons/ti/TiVolume.svelte'
+
+	let canvas;
+	let device_type = 'pc'; // we'll add an iOS flag at the end
 	let ctime = new Date();
 	let stream_url = "https://cors-anywhere.herokuapp.com/http://stream.susu.org:8000/surge-live-high-mp3";
 	let slogans = [
 		'Your student soundtrack.',
-		'The sounds of Southampton.'
+		'The sounds of Southampton.',
+		'Playing your music.'
 	]
 	let current_slogan = 0;
 	$: current_time = ctime.getTime() && get_time();
+
+	// create audio stream
+	let context = new AudioContext(), audio = new Audio(), src, analyser;
+	audio.crossOrigin = "anonymous";
+	audio.src = stream_url;
 
 	let get_time = () => {
 		return `${ctime.getHours().toString().padStart(2, '0')}:${ctime.getMinutes().toString().padStart(2, '0')}:${ctime.getSeconds().toString().padStart(2, '0')}`;
 	}
 
 	onMount(async() => {
-		// create audio stream
-		let context = new AudioContext(), audio = new Audio(),
-		src, analyser;
-		audio.crossOrigin = "anonymous";
-		audio.src = stream_url;
 		audio.load();
-
 		// canvas stuff
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
@@ -58,6 +63,7 @@
 			}
 		}
 		audio.play();
+		console.log(audio);
 		render();
 		window.onclose = function() {
 			audio.close();
@@ -69,18 +75,42 @@
 
 	setInterval(() => {
 		ctime = new Date();
+		// console.log(audio.readyState);
 	}, 1000);
 
 	setInterval(() => {	
 		current_slogan = Math.floor(Math.random()*slogans.length)
 	}, 7000);
 
-	$: visible_slogan = slogans[current_slogan]
+	let music_control_toggle = () => {
+		music_toggle_check = !music_toggle_check;
+		if (!audio.paused)
+			audio.pause();
+		else
+			audio.play()
+	}
+
+	// this is quicker than polling the audio event itself
+	let music_toggle_check = true;
+
+	$: visible_slogan = slogans[current_slogan];
 
 </script>
 
 <canvas id="canvas" bind:this={canvas}></canvas>
-<audio bind:this={audio}></audio>
+<div class="header-controls">
+	{#if audio.readyState == 4}
+		<div in:fade>
+			<button on:click={music_control_toggle}>
+				{#if music_toggle_check==true}
+					<TiMediaPause />
+				{:else}
+					<TiMediaPlay />
+				{/if}
+			</button>
+		</div>
+	{/if}
+</div>
 <main in:fade>
 	<div class="container" id="container">
 		<div>
@@ -94,6 +124,21 @@
 </main>
 
 <style>
+
+	.header-controls > div > button {
+		/* svelte-icons requires you to do this */
+		width:  48px;
+		height: 48px;
+	}
+
+	.header-controls > div {    
+		padding: 12px;
+	}
+
+	.header-controls {
+		height: 60px;
+	}
+
 	html, body {
 		position: relative;
 		width: 100%;

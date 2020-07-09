@@ -2,14 +2,16 @@
 
 	import {fade,blur} from "svelte/transition"
 	import {onMount, afterUpdate} from "svelte"
+	import { detect } from "detect-browser"
 
 	import TiMediaPlay from 'svelte-icons/ti/TiMediaPlay.svelte'
 	import TiMediaPause from 'svelte-icons/ti/TiMediaPause.svelte'
 	import TiVolume from 'svelte-icons/ti/TiVolume.svelte'
 	import TiVolumeMute from 'svelte-icons/ti/TiVolumeMute.svelte'
+	
+	const browser = detect();
 
 	let canvas;
-	let device_type = 'pc'; // we'll add an iOS flag at the end
 	let ctime = new Date();
 	let stream_url = "https://cors-anywhere.herokuapp.com/http://stream.susu.org:8000/surge-live-high-mp3";
 	let slogans = [
@@ -19,21 +21,43 @@
 	]
 	let current_slogan = 0, current_volume = 5;
 	$: current_time = ctime.getTime() && get_time();
+
 	// this is quicker than polling the audio event itself
 	let music_toggle_check = true;
-	let context = new AudioContext(), audio = new Audio(), src, analyser;
+
+	// set up audio data
+	let audio = new Audio(), context, src, analyser;
+
+	// browser compatibility checking
+	let player_fallback = false;
+	if (11==(browser.version.split(".")[0]))
+		player_fallback = true;
 
 	$: visible_slogan = slogans[current_slogan];
 
-	// create audio stream
-	audio.crossOrigin = "anonymous";
-	audio.src = stream_url;
 
 	let get_time = () => {
 		return `${ctime.getHours().toString().padStart(2, '0')}:${ctime.getMinutes().toString().padStart(2, '0')}:${ctime.getSeconds().toString().padStart(2, '0')}`;
 	}
 
 	onMount(async() => {
+
+		// create audio stream
+		switch (browser && browser.name) {
+			case 'safari':
+				audio = document.querySelector("audio");
+				context = new webkitAudioContext();
+				if (browser.os == "iOS") {
+
+				}
+				break;
+			default:
+				context = new AudioContext();
+				audio.crossOrigin = "anonymous";
+				audio.src = stream_url;
+				break;
+		};
+
 		audio.load();
 		// canvas stuff
 		canvas.width = window.innerWidth;
@@ -68,7 +92,11 @@
 			}
 		}
 		music_control_volume();
-		audio.play();
+		if (browser.name !== "safari") {
+			audio.play();
+		} else {
+			console.log("safari is irritating, you have to press the button");
+		}
 		render();
 		window.onclose = function() {
 			audio.close();
@@ -112,10 +140,20 @@
 		}
 	}
 
+	let safari_play_audio = () => {
+		document.querySelector("audio").src = stream_url;
+		document.querySelector("audio").load();
+		document.querySelector("audio").play();
+	};
 
 </script>
 
 <canvas id="canvas" bind:this={canvas}></canvas>
+{#if player_fallback == false}
+{#if browser.name == "safari"}
+	<audio src="emerge.mp3" crossorigin="anonymous" preload="true" autoplay></audio>
+	<button on:click={safari_play_audio}>Play audio</button>
+{/if}
 <div class="header-controls">
 	{#if audio.readyState == 4}
 		<div in:fade>
@@ -146,10 +184,22 @@
 		</div>
 		
 	</div>
- 
 </main>
+{:else}
+<main>
+	<h1>{current_time}</h1>
+	<h2>SURGE RADIO</h2>
+	<p>Your browser does not support the cool visualiser we've built, so here's our TuneIn.</p>
+	<iframe src="https://tunein.com/embed/player/s37346/?background=dark&scheme=006DB"scrolling="no" frameborder="no"></iframe>
+
+</main>
+{/if}
 
 <style>
+
+	iframe {
+		height:100px;
+	}
 
 	.header-controls > div > button {
 		/* svelte-icons requires you to do this */

@@ -41,6 +41,19 @@
 	}
 
 	let music_viz = () => {
+		switch (browser && browser.name) {
+			case 'safari':
+				break;
+			case 'ios':
+				break;
+			default:
+				context = new AudioContext();
+				audio.crossOrigin = "anonymous";
+				audio.src = stream_url;
+				audio.load();
+				audio.play();
+				break;
+		};
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 		let ctx = canvas.getContext("2d");
@@ -73,6 +86,7 @@
 			}
 		}
 		render();
+		audio.play();
 		window.onclose = function() {
 			audio.close();
 		}
@@ -83,17 +97,7 @@
 
 	onMount(async() => {
 		// create audio stream
-		switch (browser && browser.name) {
-			case 'safari':
-				break;
-			default:
-				context = new AudioContext();
-				audio.crossOrigin = "anonymous";
-				audio.src = stream_url;
-				audio.load();
-				music_viz();
-				break;
-		};
+		music_viz();
 	});
 
 	setInterval(() => {
@@ -132,11 +136,15 @@
 
 	let safari_play_audio = () => {
 		audio = document.querySelector("audio");
-		context = new webkitAudioContext();
+		if (audio.readyState == 0) {
+			context = new webkitAudioContext();
 
-		// document.querySelector("audio").src = stream_url;
-		document.querySelector("audio").load();
-		music_viz();
+			audio.src = stream_url;
+			audio.load();
+			audio.play();
+			music_viz();
+
+		}
 		// document.querySelector("audio").play();
 	};
 
@@ -157,22 +165,21 @@
 <canvas id="canvas" bind:this={canvas}></canvas>
 {#if player_fallback == false}
 {#if browser.name == "safari" || browser.name == "ios"}
-	<audio controls src="emerge.mp3" crossorigin="anonymous" preload="true" autoplay></audio>
-	<button class="menu-button" on:click={safari_play_audio}><TiMediaPlay /></button>
+	<div class="ios"></div>
+	<audio controls src="{stream_url}" crossorigin="anonymous" preload="true" autoplay></audio>
+	<button class="menu-button" on:touchstart={safari_play_audio} on:click={safari_play_audio}><TiMediaPlay /></button>
 {/if}
 <div class="header-controls">
-	{#if browser.os == "iOS"}
-	{/if}
 	{#if audio.readyState == 4}
 		<div in:fade>
-			<button class="menu-button" on:click={music_control_toggle}>
+			<button class="menu-button" on:touchstart={music_control_toggle} on:click={music_control_toggle}>
 				{#if music_toggle_check==true}
 					<TiMediaPause />
 				{:else}
 					<TiMediaPlay />
 				{/if}
 			</button>
-			<button class="menu-button" on:click={music_control_mute}>
+			<button class="menu-button" on:touchstart={music_control_mute} on:click={music_control_mute}>
 				{#if current_volume == 0}
 					<TiVolumeMute />
 				{:else}
@@ -209,7 +216,7 @@
 		height:100px;
 	}
 
-	.menu-button {
+	.menu-button, .header-controls > div > span {
 		/* svelte-icons requires you to do this */
 		width:  48px;
 		height: 48px;

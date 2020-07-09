@@ -30,7 +30,7 @@
 
 	// browser compatibility checking
 	let player_fallback = false;
-	if (11==(browser.version.split(".")[0]))
+	if (10==(browser.version.split(".")[0]))
 		player_fallback = true;
 
 	$: visible_slogan = slogans[current_slogan];
@@ -40,26 +40,7 @@
 		return `${ctime.getHours().toString().padStart(2, '0')}:${ctime.getMinutes().toString().padStart(2, '0')}:${ctime.getSeconds().toString().padStart(2, '0')}`;
 	}
 
-	onMount(async() => {
-
-		// create audio stream
-		switch (browser && browser.name) {
-			case 'safari':
-				audio = document.querySelector("audio");
-				context = new webkitAudioContext();
-				if (browser.os == "iOS") {
-
-				}
-				break;
-			default:
-				context = new AudioContext();
-				audio.crossOrigin = "anonymous";
-				audio.src = stream_url;
-				break;
-		};
-
-		audio.load();
-		// canvas stuff
+	let music_viz = () => {
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 		let ctx = canvas.getContext("2d");
@@ -91,12 +72,6 @@
 				x += bar_width + 1;
 			}
 		}
-		music_control_volume();
-		if (browser.name !== "safari") {
-			audio.play();
-		} else {
-			console.log("safari is irritating, you have to press the button");
-		}
 		render();
 		window.onclose = function() {
 			audio.close();
@@ -104,6 +79,21 @@
 		window.onreload = function() {
 			audio.close();
 		}
+	}
+
+	onMount(async() => {
+		// create audio stream
+		switch (browser && browser.name) {
+			case 'safari':
+				break;
+			default:
+				context = new AudioContext();
+				audio.crossOrigin = "anonymous";
+				audio.src = stream_url;
+				audio.load();
+				music_viz();
+				break;
+		};
 	});
 
 	setInterval(() => {
@@ -141,30 +131,48 @@
 	}
 
 	let safari_play_audio = () => {
-		document.querySelector("audio").src = stream_url;
+		audio = document.querySelector("audio");
+		context = new webkitAudioContext();
+
+		// document.querySelector("audio").src = stream_url;
 		document.querySelector("audio").load();
-		document.querySelector("audio").play();
+		music_viz();
+		// document.querySelector("audio").play();
+	};
+
+    let logger = '';
+	console.log = function (message) {
+        if (typeof message == 'object') {
+            logger += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />';
+        } else {
+            logger += message + '<br />';
+        }
+    }
+    window.onerror = function(error, url, line) {
+	    logger += error;
 	};
 
 </script>
 
 <canvas id="canvas" bind:this={canvas}></canvas>
 {#if player_fallback == false}
-{#if browser.name == "safari"}
-	<audio src="emerge.mp3" crossorigin="anonymous" preload="true" autoplay></audio>
-	<button on:click={safari_play_audio}>Play audio</button>
+{#if browser.name == "safari" || browser.name == "ios"}
+	<audio controls src="emerge.mp3" crossorigin="anonymous" preload="true" autoplay></audio>
+	<button class="menu-button" on:click={safari_play_audio}><TiMediaPlay /></button>
 {/if}
 <div class="header-controls">
+	{#if browser.os == "iOS"}
+	{/if}
 	{#if audio.readyState == 4}
 		<div in:fade>
-			<button on:click={music_control_toggle}>
+			<button class="menu-button" on:click={music_control_toggle}>
 				{#if music_toggle_check==true}
 					<TiMediaPause />
 				{:else}
 					<TiMediaPlay />
 				{/if}
 			</button>
-			<button on:click={music_control_mute}>
+			<button class="menu-button" on:click={music_control_mute}>
 				{#if current_volume == 0}
 					<TiVolumeMute />
 				{:else}
@@ -201,7 +209,7 @@
 		height:100px;
 	}
 
-	.header-controls > div > button {
+	.menu-button {
 		/* svelte-icons requires you to do this */
 		width:  48px;
 		height: 48px;

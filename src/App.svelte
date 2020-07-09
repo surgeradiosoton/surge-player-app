@@ -3,25 +3,19 @@
 	import {fade,blur} from "svelte/transition"
 	import {onMount, afterUpdate} from "svelte"
 
+	let canvas, audio;
 	let ctime = new Date();
 	let stream_url = "https://cors-anywhere.herokuapp.com/http://stream.susu.org:8000/surge-live-high-mp3";
+	let slogans = [
+		'Your student soundtrack.',
+		'The sounds of Southampton.'
+	]
+	let current_slogan = 0;
 	$: current_time = ctime.getTime() && get_time();
 
 	let get_time = () => {
 		return `${ctime.getHours().toString().padStart(2, '0')}:${ctime.getMinutes().toString().padStart(2, '0')}:${ctime.getSeconds().toString().padStart(2, '0')}`;
 	}
-
-	setInterval(() => {
-		ctime = new Date();
-	}, 1000);
-
-	// // the original visualiser method
-	// import generate_audio_stuff from './og_viz.js'
-	// onMount(async() => {
-	// 	generate_audio_stuff(stream_url);
-	// })
-
-	let canvas, audio;
 
 	onMount(async() => {
 		// create audio stream
@@ -73,11 +67,9 @@
 		}
 	});
 
-	let slogans = [
-		'Your student soundtrack.',
-		'The sounds of Southampton.'
-	]
-	let current_slogan = 0;
+	setInterval(() => {
+		ctime = new Date();
+	}, 1000);
 
 	setInterval(() => {	
 		current_slogan = Math.floor(Math.random()*slogans.length)
@@ -130,6 +122,7 @@
 		text-align: center;
 		font-weight: 200;
 		margin-bottom: 0;
+		letter-spacing: 1.5px;
 	}
 
 	@media (min-width: 640px) {

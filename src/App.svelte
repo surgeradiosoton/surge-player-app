@@ -30,8 +30,11 @@
 
 	// browser compatibility checking
 	let player_fallback = false;
-	if (10==(browser.version.split(".")[0]))
+	if (
+		(browser.name=="safari"&&11>=(browser.version.split(".")[0])) 
+		|| browser.name=="ios") {
 		player_fallback = true;
+	}
 
 	$: visible_slogan = slogans[current_slogan];
 
@@ -97,7 +100,8 @@
 
 	onMount(async() => {
 		// create audio stream
-		music_viz();
+		if (browser.name !== "ios")
+			music_viz();
 	});
 
 	setInterval(() => {
@@ -135,17 +139,13 @@
 	}
 
 	let safari_play_audio = () => {
-		audio = document.querySelector("audio");
+		let audio = new Audio(stream_url);
 		if (audio.readyState == 0) {
-			context = new webkitAudioContext();
-
 			audio.src = stream_url;
 			audio.load();
 			audio.play();
-			music_viz();
-
 		}
-		// document.querySelector("audio").play();
+		window.stop();
 	};
 
     let logger = '';
@@ -166,8 +166,7 @@
 {#if player_fallback == false}
 {#if browser.name == "safari" || browser.name == "ios"}
 	<div class="ios"></div>
-	<audio controls src="{stream_url}" crossorigin="anonymous" preload="true" autoplay></audio>
-	<button class="menu-button" on:touchstart={safari_play_audio} on:click={safari_play_audio}><TiMediaPlay /></button>
+	<!-- <audio on:click={music_viz}  src={stream_url} crossorigin="anonymous" autoplay></audio> -->
 {/if}
 <div class="header-controls">
 	{#if audio.readyState == 4}
@@ -195,6 +194,9 @@
 		<div>
 			<h1>{current_time}</h1>
 			<h2>SURGE RADIO</h2>
+			{#if browser.name == "ios"}
+				<button on:touchstart={safari_play_audio} on:touchend={safari_play_audio} on:touchend={safari_play_audio} on:click={safari_play_audio}>PLAY SURGE!</button>
+			{/if}
 			<h3 transition:fade>{visible_slogan}</h3>
 		</div>
 		
@@ -234,8 +236,11 @@
 		background: white;
 	}
 
-	.header-controls > div {    
+	.header-controls {    
 		padding: 12px;    
+	}
+
+	.header-controls > div {
 		display: flex;
 	}
 
@@ -243,6 +248,11 @@
 		margin-right: 6px;
 		transition: 120ms ease;
 		opacity:0.2;
+	}
+
+	.menu-button-ios {       
+		width: 256px;
+		height:32px;
 	}
 
 	.header-controls > div > *:hover {     
@@ -269,7 +279,6 @@
 	main {
 		text-align: center;
 		padding: 1em;
-		max-width: 240px;
 		margin: 0 auto;
 	}
 
@@ -287,6 +296,12 @@
 	@media (min-width: 640px) {
 		main {
 			max-width: none;
+			padding: 0.2em;
+		}
+
+		h1 {
+			display: none;
+			font-size:2em;
 		}
 	}
 </style>

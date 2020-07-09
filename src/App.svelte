@@ -6,6 +6,7 @@
 	import TiMediaPlay from 'svelte-icons/ti/TiMediaPlay.svelte'
 	import TiMediaPause from 'svelte-icons/ti/TiMediaPause.svelte'
 	import TiVolume from 'svelte-icons/ti/TiVolume.svelte'
+	import TiVolumeMute from 'svelte-icons/ti/TiVolumeMute.svelte'
 
 	let canvas;
 	let device_type = 'pc'; // we'll add an iOS flag at the end
@@ -16,11 +17,15 @@
 		'The sounds of Southampton.',
 		'Playing your music.'
 	]
-	let current_slogan = 0;
+	let current_slogan = 0, current_volume = 5;
 	$: current_time = ctime.getTime() && get_time();
+	// this is quicker than polling the audio event itself
+	let music_toggle_check = true;
+	let context = new AudioContext(), audio = new Audio(), src, analyser;
+
+	$: visible_slogan = slogans[current_slogan];
 
 	// create audio stream
-	let context = new AudioContext(), audio = new Audio(), src, analyser;
 	audio.crossOrigin = "anonymous";
 	audio.src = stream_url;
 
@@ -62,8 +67,8 @@
 				x += bar_width + 1;
 			}
 		}
+		music_control_volume();
 		audio.play();
-		console.log(audio);
 		render();
 		window.onclose = function() {
 			audio.close();
@@ -87,13 +92,26 @@
 		if (!audio.paused)
 			audio.pause();
 		else
-			audio.play()
+			audio.play();
 	}
 
-	// this is quicker than polling the audio event itself
-	let music_toggle_check = true;
+	let music_control_volume = () => {
+		audio.volume = current_volume/10;
+	}
 
-	$: visible_slogan = slogans[current_slogan];
+	let music_control_mute = () => {
+		// there is a more svelte-y way to do this using $:
+		// but for now this'll do!
+		if (audio.volume == 0) {
+			audio.volume = 0.5;
+			current_volume = 5;
+		}
+		else {
+			audio.volume = 0;
+			current_volume = 0;
+		}
+	}
+
 
 </script>
 
@@ -108,6 +126,14 @@
 					<TiMediaPlay />
 				{/if}
 			</button>
+			<button on:click={music_control_mute}>
+				{#if current_volume == 0}
+					<TiVolumeMute />
+				{:else}
+					<TiVolume />
+				{/if}
+			</button>
+			<input type="range" bind:value={current_volume} on:input={music_control_volume} min="0" max="10">
 		</div>
 	{/if}
 </div>
@@ -129,10 +155,33 @@
 		/* svelte-icons requires you to do this */
 		width:  48px;
 		height: 48px;
+		-webkit-appearance:none;
+		appearance:none;
+		text-align: left;
+		background: white;
+	}
+
+	.header-controls > div > input {
+		/* svelte-icons requires you to do this */
+		height: 48px;
+		-webkit-appearance:none;
+		appearance:none;
+		background: white;
 	}
 
 	.header-controls > div {    
-		padding: 12px;
+		padding: 12px;    
+		display: flex;
+	}
+
+	.header-controls > div > * {       
+		margin-right: 6px;
+		transition: 120ms ease;
+		opacity:0.2;
+	}
+
+	.header-controls > div > *:hover {     
+		opacity:0.5; 
 	}
 
 	.header-controls {

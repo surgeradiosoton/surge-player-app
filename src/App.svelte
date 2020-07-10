@@ -293,6 +293,10 @@
 		letter-spacing: 1.5px;
 	}
 
+	@media (max-width:640px) {
+		display: none;
+	}
+
 	@media (min-width: 640px) {
 		main {
 			max-width: none;
@@ -300,7 +304,6 @@
 		}
 
 		h1 {
-			display: none;
 			font-size:2em;
 		}
 	}

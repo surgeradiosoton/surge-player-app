@@ -1,5 +1,6 @@
 {
   "name": "surge-radio-player",
+  "license":"SurgeRadioLicense",
   "version": "2.0.0",
   "scripts": {
     "build": "rollup -c",

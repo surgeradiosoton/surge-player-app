@@ -1,6 +1,6 @@
 {
   "name": "surge-radio-player",
-  "license":"SurgeRadioLicense",
+  "license": "SurgeRadioLicense",
   "version": "2.0.0",
   "scripts": {
     "build": "rollup -c",
@@ -20,6 +20,7 @@
   "dependencies": {
     "detect-browser": "^5.1.1",
     "sirv-cli": "^0.4.4",
+    "svelte-calendar": "^1.5.0",
     "svelte-icons": "^2.1.0"
   }
 }

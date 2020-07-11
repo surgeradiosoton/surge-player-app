@@ -281,10 +281,6 @@
 		letter-spacing: 1.5px;
 	}
 
-	@media (max-width:640px) {
-		display: none;
-	}
-
 	@media (min-width: 640px) {
 		main {
 			max-width: none;

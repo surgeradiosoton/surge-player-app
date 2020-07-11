@@ -59,7 +59,7 @@
 		};
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
-		let ctx = canvas.getContext("2d");
+		let canvas_context = canvas.getContext("2d");
 
 		// create audio analysis stuff
 		src = context.createMediaElementSource(audio);
@@ -67,8 +67,8 @@
 		src.connect(analyser);
 		analyser.connect(context.destination);
 		analyser.fftSize = 256;
-		var buffer_len = analyser.frequencyBinCount;
-		var buffer_contents = new Uint8Array(buffer_len);
+		let buffer_len = analyser.frequencyBinCount,
+			buffer_contents = new Uint8Array(buffer_len);
 
 		// render sub function
 		let render = () => {
@@ -77,14 +77,14 @@
 				x = 0;
 			requestAnimationFrame(render);
 			analyser.getByteFrequencyData(buffer_contents);
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			canvas_context.clearRect(0, 0, canvas.width, canvas.height);
 			for (var i = 0; i < buffer_len; i++) {
 				bar_height = buffer_contents[i]*2;
 				var h = 216;
 				var s = (bar_height*0.7) + (25 * (i/buffer_len));
 				var l = 50+(25 * (i/buffer_len));
-				ctx.fillStyle = "hsl(" + h + "," + s + "%," + l + "%)";
-				ctx.fillRect(x, canvas.height - bar_height, bar_width, bar_height);
+				canvas_context.fillStyle = "hsl(" + h + "," + s + "%," + l + "%)";
+				canvas_context.fillRect(x, canvas.height - bar_height, bar_width, bar_height);
 				x += bar_width + 1;
 			}
 		}
@@ -146,18 +146,6 @@
 			audio.play();
 		}
 		window.stop();
-	};
-
-    let logger = '';
-	console.log = function (message) {
-        if (typeof message == 'object') {
-            logger += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />';
-        } else {
-            logger += message + '<br />';
-        }
-    }
-    window.onerror = function(error, url, line) {
-	    logger += error;
 	};
 
 </script>
